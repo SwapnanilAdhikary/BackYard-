@@ -1,0 +1,8 @@
+/target
+
+# SQLite databases and write-ahead log sidecars (tests, local dev)
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3

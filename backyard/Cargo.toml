@@ -6,8 +6,8 @@ license.workspace = true
 description = "Sidekiq-inspired async job queue for Rust — Redis and SQLite backends"
 keywords = ["job-queue", "background-jobs", "redis", "sidekiq", "worker"]
 categories = ["asynchronous", "database"]
-repository = "https://github.com/user/backyard"
-homepage = "https://github.com/user/backyard"
+repository = "https://github.com/SwapnanilAdhikary/BackYard-"
+homepage = "https://github.com/SwapnanilAdhikary/BackYard-"
 documentation = "https://docs.rs/backyard"
 readme = "README.md"
 

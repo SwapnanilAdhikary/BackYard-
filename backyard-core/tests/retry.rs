@@ -19,5 +19,8 @@ fn test_backoff_cap() {
     let t101 = next_retry_at(101);
 
     let diff = t101.signed_duration_since(t100);
-    assert!(diff.num_seconds() < 3600, "backoff should be capped at 1 hour");
+    assert!(
+        diff.num_seconds() < 3600,
+        "backoff should be capped at 1 hour"
+    );
 }

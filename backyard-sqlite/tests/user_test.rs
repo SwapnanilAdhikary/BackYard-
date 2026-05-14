@@ -1,10 +1,9 @@
+use async_trait::async_trait;
 /// Real user test: Actually execute jobs end-to-end
 /// Run with: cargo test --test user_test -- --nocapture
-
 use backyard_core::{Job, JobContext, Queue, Result};
-use async_trait::async_trait;
-use serde::{Serialize, Deserialize};
-use backyard_sqlite::{SqliteQueue, SqliteConfig};
+use backyard_sqlite::{SqliteConfig, SqliteQueue};
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -57,7 +56,10 @@ async fn user_test_enqueue_and_pop() -> Result<()> {
 
     // Pop it back
     if let Some(popped) = queue.pop(&["default"]).await? {
-        println!("✓ Job popped: type={}, attempts={}", popped.job_type, popped.attempts);
+        println!(
+            "✓ Job popped: type={}, attempts={}",
+            popped.job_type, popped.attempts
+        );
 
         // Deserialize
         let parsed: PrintMessage = serde_json::from_slice(&popped.payload)?;
@@ -151,7 +153,9 @@ async fn user_test_retry_logic() -> Result<()> {
 
         async fn execute(self, _ctx: &JobContext) -> Result<()> {
             if self.attempt < 2 {
-                Err(backyard_core::BackyardError::Execution("Not ready yet".to_string()))
+                Err(backyard_core::BackyardError::Execution(
+                    "Not ready yet".to_string(),
+                ))
             } else {
                 println!("✓ Finally succeeded!");
                 Ok(())
@@ -204,8 +208,10 @@ async fn user_test_retry_logic() -> Result<()> {
 
     // Check updated job
     let job_after = queue.get(popped.id).await?.unwrap();
-    println!("✓ Job rescheduled: attempts={}, scheduled_at={}",
-             job_after.attempts, job_after.scheduled_at);
+    println!(
+        "✓ Job rescheduled: attempts={}, scheduled_at={}",
+        job_after.attempts, job_after.scheduled_at
+    );
 
     assert!(job_after.attempts > 0);
     println!();
@@ -244,8 +250,10 @@ async fn user_test_job_inspection() -> Result<()> {
     let jobs = queue.list("test", None, 10, 0).await?;
     println!("✓ Found {} jobs in 'test' queue:", jobs.len());
     for job in &jobs {
-        println!("  • ID: {}, type: {}, priority: {}",
-                 job.id, job.job_type, job.attempts);
+        println!(
+            "  • ID: {}, type: {}, priority: {}",
+            job.id, job.job_type, job.attempts
+        );
     }
 
     // Get specific job

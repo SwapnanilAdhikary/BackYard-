@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc, Duration};
+use chrono::{DateTime, Duration, Utc};
 use std::time;
 
 pub fn next_retry_at(attempts: u32) -> DateTime<Utc> {

@@ -1,5 +1,5 @@
-use async_trait::async_trait;
 use crate::error::Result;
+use async_trait::async_trait;
 use std::sync::Arc;
 
 pub type JobId = uuid::Uuid;

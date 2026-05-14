@@ -1,5 +1,5 @@
+use backyard_core::{Queue, Result, WorkerConfig, WorkerPool};
 use std::sync::Arc;
-use backyard_core::{Queue, WorkerConfig, WorkerPool, Result};
 
 pub struct WorkerBuilder {
     queue: Arc<dyn Queue>,

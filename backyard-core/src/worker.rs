@@ -1,16 +1,16 @@
-use std::sync::Arc;
-use std::collections::HashMap;
-use tokio_util::sync::CancellationToken;
-use tokio::sync::mpsc;
-use tracing::{info, error, warn, Instrument};
 use crate::{
     error::Result,
     job::{JobContext, RawJob},
     queue::Queue,
     registry::build_dispatch_table,
 };
+use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;
+use std::sync::Arc;
+use tokio::sync::mpsc;
+use tokio_util::sync::CancellationToken;
+use tracing::{error, info, warn, Instrument};
 
 pub type HandlerFn = fn(&[u8], JobContext) -> Pin<Box<dyn Future<Output = Result<()>> + Send>>;
 
@@ -53,7 +53,8 @@ impl WorkerPool {
     }
 
     pub async fn run(self) -> Result<()> {
-        let (tx, rx): (mpsc::Sender<RawJob>, mpsc::Receiver<RawJob>) = mpsc::channel(self.config.concurrency * 2);
+        let (tx, rx): (mpsc::Sender<RawJob>, mpsc::Receiver<RawJob>) =
+            mpsc::channel(self.config.concurrency * 2);
         let rx = Arc::new(tokio::sync::Mutex::new(rx));
 
         let mut handles = vec![];

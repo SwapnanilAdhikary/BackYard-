@@ -67,17 +67,17 @@
 
 pub mod error;
 pub mod job;
-pub mod queue;
 pub mod options;
-pub mod worker;
+pub mod queue;
 pub mod registry;
 pub mod retry;
+pub mod worker;
 
 pub use error::{BackyardError, Result};
 pub use job::{Job, JobContext, JobId, RawJob};
-pub use queue::Queue;
 pub use options::JobOptions;
-pub use worker::{WorkerPool, WorkerConfig};
+pub use queue::Queue;
 pub use registry::build_dispatch_table;
+pub use worker::{WorkerConfig, WorkerPool};
 
 pub use inventory;

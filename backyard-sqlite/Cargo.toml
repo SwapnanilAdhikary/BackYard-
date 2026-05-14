@@ -3,6 +3,10 @@ name = "backyard-sqlite"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+description = "SQLite backend for the Backyard async job queue"
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
 
 [dependencies]
 backyard-core = { path = "../backyard-core" }

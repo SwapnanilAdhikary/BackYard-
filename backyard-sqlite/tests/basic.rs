@@ -1,6 +1,6 @@
-use backyard_core::{Queue, Result};
 use backyard_core::queue::EnqueueRequest;
-use backyard_sqlite::{SqliteQueue, SqliteConfig};
+use backyard_core::{Queue, Result};
+use backyard_sqlite::{SqliteConfig, SqliteQueue};
 use chrono::Utc;
 
 #[tokio::test]
@@ -64,7 +64,10 @@ async fn test_sqlite_fail() -> Result<()> {
 
     let job_after = queue.get(job.id).await?;
     assert!(job_after.is_some());
-    assert_eq!(job_after.unwrap().error.as_deref(), Some("Something went wrong"));
+    assert_eq!(
+        job_after.unwrap().error.as_deref(),
+        Some("Something went wrong")
+    );
 
     Ok(())
 }

@@ -1,9 +1,10 @@
 use async_trait::async_trait;
-use backyard_core::{Queue, Result, BackyardError, RawJob};
 use backyard_core::queue::EnqueueRequest;
+use backyard_core::{BackyardError, Queue, RawJob, Result};
 use chrono::Utc;
-use sqlx::{SqlitePool, Row};
+use sqlx::{Row, SqlitePool};
 use std::collections::HashMap;
+use std::str::FromStr;
 use uuid::Uuid;
 
 pub struct SqliteQueue {
@@ -13,14 +14,10 @@ pub struct SqliteQueue {
 
 impl SqliteQueue {
     pub async fn new(config: crate::config::SqliteConfig) -> Result<Self> {
-        let filename = if config.database_url.starts_with("sqlite://") {
-            config.database_url.replace("sqlite://", "")
-        } else {
-            config.database_url.clone()
-        };
-
-        let options = sqlx::sqlite::SqliteConnectOptions::new()
-            .filename(&filename)
+        // Use URL parsing so `sqlite://:memory:` gets `shared_cache` + correct in-memory URI.
+        // `.filename(":memory:")` alone gives each pool connection a private DB (no `jobs` table).
+        let options = sqlx::sqlite::SqliteConnectOptions::from_str(&config.database_url)
+            .map_err(|e| BackyardError::Backend(e.to_string()))?
             .create_if_missing(true)
             .journal_mode(sqlx::sqlite::SqliteJournalMode::Wal);
 
@@ -47,7 +44,9 @@ impl SqliteQueue {
             created_at TEXT NOT NULL
         )"#;
 
-        let mut conn = pool.acquire().await
+        let mut conn = pool
+            .acquire()
+            .await
             .map_err(|e| BackyardError::Backend(format!("Failed to get connection: {}", e)))?;
 
         sqlx::raw_sql(create_table)
@@ -105,7 +104,10 @@ impl Queue for SqliteQueue {
             return Ok(None);
         }
 
-        let mut tx = self.pool.begin().await
+        let mut tx = self
+            .pool
+            .begin()
+            .await
             .map_err(|e| BackyardError::Backend(e.to_string()))?;
 
         let now = Utc::now().to_rfc3339();
@@ -130,7 +132,8 @@ impl Queue for SqliteQueue {
             query = query.bind(queue);
         }
 
-        let row = query.fetch_optional(&mut *tx)
+        let row = query
+            .fetch_optional(&mut *tx)
             .await
             .map_err(|e| BackyardError::Backend(e.to_string()))?;
 
@@ -138,21 +141,19 @@ impl Queue for SqliteQueue {
             let id_str: String = row.get("id");
             let locked_at_str = Utc::now().to_rfc3339();
 
-            sqlx::query(
-                "UPDATE jobs SET status='running', locked_by=?, locked_at=? WHERE id=?",
-            )
-            .bind(&self.worker_id)
-            .bind(&locked_at_str)
-            .bind(&id_str)
-            .execute(&mut *tx)
-            .await
-            .map_err(|e| BackyardError::Backend(e.to_string()))?;
-
-            tx.commit().await
+            sqlx::query("UPDATE jobs SET status='running', locked_by=?, locked_at=? WHERE id=?")
+                .bind(&self.worker_id)
+                .bind(&locked_at_str)
+                .bind(&id_str)
+                .execute(&mut *tx)
+                .await
                 .map_err(|e| BackyardError::Backend(e.to_string()))?;
 
-            let id = Uuid::parse_str(&id_str)
+            tx.commit()
+                .await
                 .map_err(|e| BackyardError::Backend(e.to_string()))?;
+
+            let id = Uuid::parse_str(&id_str).map_err(|e| BackyardError::Backend(e.to_string()))?;
             let queue: String = row.get("queue");
             let job_type: String = row.get("job_type");
             let payload: Vec<u8> = row.get("payload");
@@ -197,7 +198,7 @@ impl Queue for SqliteQueue {
 
     async fn fail(&self, id: Uuid, err: &str) -> Result<()> {
         sqlx::query(
-            "UPDATE jobs SET status='dead', error=?, locked_by=NULL, locked_at=NULL WHERE id=?"
+            "UPDATE jobs SET status='dead', error=?, locked_by=NULL, locked_at=NULL WHERE id=?",
         )
         .bind(err)
         .bind(id.to_string())
@@ -353,7 +354,7 @@ impl Queue for SqliteQueue {
             r#"SELECT queue, COUNT(*) as count
                FROM jobs
                WHERE status = 'pending' OR status = 'running'
-               GROUP BY queue"#
+               GROUP BY queue"#,
         )
         .fetch_all(&self.pool)
         .await
