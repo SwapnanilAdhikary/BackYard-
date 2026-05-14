@@ -18,6 +18,12 @@ documentation = "https://docs.rs/backyard"
 authors = ["Backyard Contributors"]
 
 [workspace.dependencies]
+# Path + version: `path` is used locally; `version` is required for `cargo publish`.
+backyard-core = { path = "backyard-core", version = "0.1.0" }
+backyard-macros = { path = "backyard-macros", version = "0.1.0" }
+backyard-redis = { path = "backyard-redis", version = "0.1.0" }
+backyard-sqlite = { path = "backyard-sqlite", version = "0.1.0" }
+
 tokio = { version = "1", features = ["full"] }
 tokio-util = { version = "0.7", features = ["rt"] }
 

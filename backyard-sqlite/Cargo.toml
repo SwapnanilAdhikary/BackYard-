@@ -9,7 +9,7 @@ homepage.workspace = true
 documentation.workspace = true
 
 [dependencies]
-backyard-core = { path = "../backyard-core" }
+backyard-core = { workspace = true }
 sqlx = { workspace = true }
 tokio = { workspace = true }
 serde = { workspace = true }
