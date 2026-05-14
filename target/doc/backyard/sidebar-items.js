@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"derive":["Job"],"enum":["BackyardError"],"mod":["builder","queue","retry"],"struct":["JobContext","JobOptions","RawJob","SqliteConfig","SqliteQueue","WorkerConfig"],"trait":["Job","Queue"],"type":["JobId","Result"]};

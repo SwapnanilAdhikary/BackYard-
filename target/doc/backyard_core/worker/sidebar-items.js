@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["WorkerConfig","WorkerPool"],"type":["HandlerFn"]};

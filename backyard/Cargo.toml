@@ -1,0 +1,39 @@
+[package]
+name = "backyard"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Sidekiq-inspired async job queue for Rust — Redis and SQLite backends"
+keywords = ["job-queue", "background-jobs", "redis", "sidekiq", "worker"]
+categories = ["asynchronous", "database"]
+repository = "https://github.com/user/backyard"
+homepage = "https://github.com/user/backyard"
+documentation = "https://docs.rs/backyard"
+readme = "README.md"
+
+[features]
+default = ["sqlite"]
+redis = ["dep:backyard-redis"]
+sqlite = ["dep:backyard-sqlite"]
+ui = ["dep:axum", "dep:tower", "dep:tower-http"]
+cron = ["dep:cron"]
+
+[dependencies]
+backyard-core = { path = "../backyard-core" }
+backyard-macros = { path = "../backyard-macros" }
+backyard-redis = { path = "../backyard-redis", optional = true }
+backyard-sqlite = { path = "../backyard-sqlite", optional = true }
+
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+
+axum = { workspace = true, optional = true }
+tower = { workspace = true, optional = true }
+tower-http = { workspace = true, optional = true }
+cron = { workspace = true, optional = true }
+async-trait = { workspace = true }

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["build_dispatch_table"],"struct":["JobRegistration"]};

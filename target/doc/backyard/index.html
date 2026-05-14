@@ -1,0 +1,100 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Backyard"><title>backyard - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-77263533.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="backyard" data-themes="" data-resource-suffix="" data-rustdoc-version="1.94.0 (4a4ef493e 2026-03-02)" data-channel="1.94.0" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-c38705f0.js" ><script src="../static.files/storage-e2aeef58.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-7bab91a1.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-ffcac47a.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate backyard</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../backyard/index.html">backyard</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#backyard" title="Backyard">Backyard</a><ul><li><a href="#quick-start" title="Quick Start">Quick Start</a></li><li><a href="#cargotoml" title="Cargo.toml">Cargo.toml</a></li><li><a href="#features" title="Features">Features</a></li><li><a href="#backends" title="Backends">Backends</a></li><li><a href="#job-lifecycle" title="Job Lifecycle">Job Lifecycle</a></li><li><a href="#error-handling" title="Error Handling">Error Handling</a></li></ul></li></ul><h3><a href="#reexports">Crate Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#types" title="Type Aliases">Type Aliases</a></li><li><a href="#derives" title="Derive Macros">Derive Macros</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>backyard</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/backyard/lib.rs.html#1-177">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="backyard"><a class="doc-anchor" href="#backyard">§</a>Backyard</h2>
+<p>A Sidekiq-inspired async job queue for Rust.</p>
+<p>Backyard makes it easy to define, enqueue, and process background jobs with:</p>
+<ul>
+<li><strong>Type-safe jobs</strong> via <code>#[derive(Job)]</code></li>
+<li><strong>Reliable delivery</strong> with automatic retries and dead letter queue</li>
+<li><strong>Multiple backends</strong> (SQLite, Redis, or custom implementations)</li>
+<li><strong>Worker pool</strong> with configurable concurrency</li>
+<li><strong>Observability</strong> via tracing integration</li>
+</ul>
+<h3 id="quick-start"><a class="doc-anchor" href="#quick-start">§</a>Quick Start</h3><h4 id="1-define-a-job"><a class="doc-anchor" href="#1-define-a-job">§</a>1. Define a Job</h4>
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>backyard::Job;
+<span class="kw">use </span>async_trait::async_trait;
+<span class="kw">use </span>serde::{Serialize, Deserialize};
+
+<span class="attr">#[derive(Job, Serialize, Deserialize)]
+</span><span class="kw">struct </span>SendEmail {
+    to: String,
+    subject: String,
+}
+
+<span class="attr">#[async_trait]
+</span><span class="kw">impl </span>Job <span class="kw">for </span>SendEmail {
+    <span class="kw">async fn </span>execute(<span class="self">self</span>, _ctx: <span class="kw-2">&amp;</span>backyard::JobContext) -&gt; backyard::Result&lt;()&gt; {
+        <span class="macro">println!</span>(<span class="string">"Sending email to {}: {}"</span>, <span class="self">self</span>.to, <span class="self">self</span>.subject);
+        <span class="prelude-val">Ok</span>(())
+    }
+}</code></pre></div><h4 id="2-enqueue-the-job"><a class="doc-anchor" href="#2-enqueue-the-job">§</a>2. Enqueue the Job</h4>
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">let </span>queue = SqliteQueue::new(SqliteConfig::default()).<span class="kw">await</span><span class="question-mark">?</span>;
+
+<span class="kw">let </span>job = SendEmail {
+    to: <span class="string">"user@example.com"</span>.into(),
+    subject: <span class="string">"Hello"</span>.into(),
+};
+
+<span class="kw">let </span>req = backyard::queue::EnqueueRequest {
+    job_type: SendEmail::NAME.to_string(),
+    queue: <span class="string">"default"</span>.to_string(),
+    payload: serde_json::to_vec(<span class="kw-2">&amp;</span>job)<span class="question-mark">?</span>,
+    max_retries: <span class="number">3</span>,
+    priority: <span class="number">0</span>,
+    scheduled_at: chrono::Utc::now(),
+};
+
+queue.push(req).<span class="kw">await</span><span class="question-mark">?</span>;</code></pre></div><h4 id="3-run-the-worker"><a class="doc-anchor" href="#3-run-the-worker">§</a>3. Run the Worker</h4>
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code>WorkerBuilder::new(queue)
+    .concurrency(<span class="number">10</span>)
+    .queues([<span class="string">"default"</span>])
+    .run()
+    .<span class="kw">await</span><span class="question-mark">?</span>;</code></pre></div><h3 id="cargotoml"><a class="doc-anchor" href="#cargotoml">§</a>Cargo.toml</h3><div class="example-wrap"><pre class="language-toml"><code>[dependencies]
+backyard = { version = &quot;0.1&quot;, features = [&quot;sqlite&quot;] }
+async-trait = &quot;0.1&quot;
+serde = { version = &quot;1&quot;, features = [&quot;derive&quot;] }
+tokio = { version = &quot;1&quot;, features = [&quot;full&quot;] }
+chrono = &quot;0.4&quot;</code></pre></div><h3 id="features"><a class="doc-anchor" href="#features">§</a>Features</h3>
+<ul>
+<li><code>sqlite</code> (default): SQLite backend, no external dependencies</li>
+<li><code>redis</code>: Redis backend via <code>fred</code> client</li>
+<li><code>ui</code>: JSON API for job inspection (requires Axum)</li>
+<li><code>cron</code>: Scheduled job support via cron expressions</li>
+</ul>
+<h3 id="backends"><a class="doc-anchor" href="#backends">§</a>Backends</h3><h4 id="sqlite-default"><a class="doc-anchor" href="#sqlite-default">§</a>SQLite (Default)</h4>
+<p>Perfect for single-server applications:</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>backyard::SqliteQueue;
+
+<span class="kw">let </span>queue = SqliteQueue::new(backyard::SqliteConfig {
+    database_url: <span class="string">"sqlite://backyard.db"</span>.to_string(),
+    ..Default::default()
+}).<span class="kw">await</span><span class="question-mark">?</span>;</code></pre></div><h4 id="redis"><a class="doc-anchor" href="#redis">§</a>Redis</h4>
+<p>For distributed systems:</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>backyard::RedisQueue;
+
+<span class="kw">let </span>queue = RedisQueue::new(backyard::RedisConfig {
+    redis_url: <span class="string">"redis://localhost:6379"</span>.to_string(),
+    pool_size: <span class="number">10</span>,
+}).<span class="kw">await</span><span class="question-mark">?</span>;</code></pre></div><h3 id="job-lifecycle"><a class="doc-anchor" href="#job-lifecycle">§</a>Job Lifecycle</h3>
+<ol>
+<li><strong>Enqueue</strong>: Job added to <code>pending</code> queue</li>
+<li><strong>Pop</strong>: Worker picks up next available job</li>
+<li><strong>Execute</strong>: Job’s <code>async fn execute()</code> runs</li>
+<li><strong>Ack/Fail</strong>: Success → deleted; Failure → retry or move to DLQ</li>
+<li><strong>Retry</strong>: Failed jobs rescheduled with exponential backoff (10s→20s→40s…max 1h)</li>
+</ol>
+<h3 id="error-handling"><a class="doc-anchor" href="#error-handling">§</a>Error Handling</h3>
+<p>Jobs that fail are automatically retried according to <code>max_retries</code>:</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="attr">#[async_trait]
+</span><span class="kw">impl </span>Job <span class="kw">for </span>MyJob {
+    <span class="kw">async fn </span>execute(<span class="self">self</span>, _ctx: <span class="kw-2">&amp;</span>JobContext) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="comment">// Returning Err() automatically triggers retry logic
+        </span><span class="kw">if </span>something_went_wrong {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(backyard::BackyardError::Execution(<span class="string">"reason"</span>.into()));
+        }
+        <span class="prelude-val">Ok</span>(())
+    }
+}</code></pre></div>
+<p>After max retries exhausted, jobs are moved to the <strong>dead letter queue</strong>.</p>
+</div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><dl class="item-table reexports"><dt id="reexport.WorkerBuilder"><code>pub use builder::<a class="struct" href="builder/struct.WorkerBuilder.html" title="struct backyard::builder::WorkerBuilder">WorkerBuilder</a>;</code></dt></dl><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="builder/index.html" title="mod backyard::builder">builder</a></dt><dt><a class="mod" href="queue/index.html" title="mod backyard::queue">queue</a></dt><dd>Re-export queue types and request for convenience</dd><dt><a class="mod" href="retry/index.html" title="mod backyard::retry">retry</a></dt><dd>Retry logic for failed jobs</dd></dl><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.JobContext.html" title="struct backyard::JobContext">JobContext</a></dt><dt><a class="struct" href="struct.JobOptions.html" title="struct backyard::JobOptions">JobOptions</a></dt><dt><a class="struct" href="struct.RawJob.html" title="struct backyard::RawJob">RawJob</a></dt><dt><a class="struct" href="struct.SqliteConfig.html" title="struct backyard::SqliteConfig">Sqlite<wbr>Config</a></dt><dt><a class="struct" href="struct.SqliteQueue.html" title="struct backyard::SqliteQueue">Sqlite<wbr>Queue</a></dt><dt><a class="struct" href="struct.WorkerConfig.html" title="struct backyard::WorkerConfig">Worker<wbr>Config</a></dt></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.BackyardError.html" title="enum backyard::BackyardError">Backyard<wbr>Error</a></dt></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.Job.html" title="trait backyard::Job">Job</a></dt><dd>A background job that can be enqueued and executed by workers.</dd><dt><a class="trait" href="trait.Queue.html" title="trait backyard::Queue">Queue</a></dt></dl><h2 id="types" class="section-header">Type Aliases<a href="#types" class="anchor">§</a></h2><dl class="item-table"><dt><a class="type" href="type.JobId.html" title="type backyard::JobId">JobId</a></dt><dt><a class="type" href="type.Result.html" title="type backyard::Result">Result</a></dt></dl><h2 id="derives" class="section-header">Derive Macros<a href="#derives" class="anchor">§</a></h2><dl class="item-table"><dt><a class="derive" href="derive.Job.html" title="derive backyard::Job">Job</a></dt></dl><script type="text/json" id="notable-traits-data">{"&[u8]":"<h3>Notable traits for <code>&amp;[<a class=\"primitive\" href=\"https://doc.rust-lang.org/1.94.0/std/primitive.u8.html\">u8</a>]</code></h3><pre><code><div class=\"where\">impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.94.0/std/io/trait.Read.html\" title=\"trait std::io::Read\">Read</a> for &amp;[<a class=\"primitive\" href=\"https://doc.rust-lang.org/1.94.0/std/primitive.u8.html\">u8</a>]</div>"}</script></section></div></main></body></html>

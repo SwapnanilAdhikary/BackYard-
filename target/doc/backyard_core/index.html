@@ -1,0 +1,59 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Backyard Core"><title>backyard_core - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-77263533.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="backyard_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.94.0 (4a4ef493e 2026-03-02)" data-channel="1.94.0" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-c38705f0.js" ><script src="../static.files/storage-e2aeef58.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-7bab91a1.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-ffcac47a.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate backyard_core</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../backyard_core/index.html">backyard_<wbr>core</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#backyard-core" title="Backyard Core">Backyard Core</a><ul><li><a href="#quick-start" title="Quick Start">Quick Start</a></li></ul></li></ul><h3><a href="#reexports">Crate Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#modules" title="Modules">Modules</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>backyard_<wbr>core</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/backyard_core/lib.rs.html#1-83">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="backyard-core"><a class="doc-anchor" href="#backyard-core">§</a>Backyard Core</h2>
+<p>Core traits and types for the Backyard async job queue.</p>
+<p>This crate provides the fundamental abstractions that make Backyard backend-agnostic:</p>
+<ul>
+<li><a href="job/trait.Job.html" title="trait backyard_core::job::Job"><code>Job</code></a> trait for defining background jobs</li>
+<li><a href="queue/trait.Queue.html" title="trait backyard_core::queue::Queue"><code>Queue</code></a> trait for implementing backends (SQLite, Redis, etc.)</li>
+<li><a href="worker/struct.WorkerPool.html" title="struct backyard_core::worker::WorkerPool"><code>WorkerPool</code></a> for processing jobs with Tokio</li>
+</ul>
+<h3 id="quick-start"><a class="doc-anchor" href="#quick-start">§</a>Quick Start</h3>
+<p>Define a job by implementing <a href="job/trait.Job.html" title="trait backyard_core::job::Job"><code>Job</code></a>:</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>backyard_core::{Job, JobContext, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span>async_trait::async_trait;
+<span class="kw">use </span>serde::{Serialize, Deserialize};
+
+<span class="attr">#[derive(Serialize, Deserialize)]
+</span><span class="kw">struct </span>SendEmail {
+    to: String,
+}
+
+<span class="attr">#[async_trait]
+</span><span class="kw">impl </span>Job <span class="kw">for </span>SendEmail {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"SendEmail"</span>;
+
+    <span class="kw">async fn </span>execute(<span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>JobContext) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="macro">println!</span>(<span class="string">"Sending email to {}"</span>, <span class="self">self</span>.to);
+        <span class="prelude-val">Ok</span>(())
+    }
+}</code></pre></div>
+<p>Then use with a backend like <code>backyard-sqlite</code>:</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>backyard_sqlite::SqliteQueue;
+<span class="kw">use </span>backyard_core::WorkerBuilder;
+
+<span class="attr">#[tokio::main]
+</span><span class="kw">async fn </span>main() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>queue = SqliteQueue::new(Default::default()).<span class="kw">await</span><span class="question-mark">?</span>;
+
+    <span class="comment">// Enqueue a job
+    </span><span class="kw">let </span>job = SendEmail { to: <span class="string">"user@example.com"</span>.into() };
+    <span class="kw">let </span>payload = serde_json::to_vec(<span class="kw-2">&amp;</span>job)<span class="question-mark">?</span>;
+    <span class="kw">let </span>req = backyard_core::queue::EnqueueRequest {
+        job_type: SendEmail::NAME.to_string(),
+        queue: <span class="string">"default"</span>.to_string(),
+        payload,
+        max_retries: <span class="number">3</span>,
+        priority: <span class="number">0</span>,
+        scheduled_at: chrono::Utc::now(),
+    };
+    queue.push(req).<span class="kw">await</span><span class="question-mark">?</span>;
+
+    <span class="comment">// Run the worker
+    </span>WorkerBuilder::new(queue)
+        .concurrency(<span class="number">10</span>)
+        .run()
+        .<span class="kw">await</span><span class="question-mark">?</span>;
+
+    <span class="prelude-val">Ok</span>(())
+}</code></pre></div></div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><dl class="item-table reexports"><dt id="reexport.BackyardError"><code>pub use error::<a class="enum" href="error/enum.BackyardError.html" title="enum backyard_core::error::BackyardError">BackyardError</a>;</code></dt><dt id="reexport.Result"><code>pub use error::<a class="type" href="error/type.Result.html" title="type backyard_core::error::Result">Result</a>;</code></dt><dt id="reexport.Job"><code>pub use job::<a class="trait" href="job/trait.Job.html" title="trait backyard_core::job::Job">Job</a>;</code></dt><dt id="reexport.JobContext"><code>pub use job::<a class="struct" href="job/struct.JobContext.html" title="struct backyard_core::job::JobContext">JobContext</a>;</code></dt><dt id="reexport.JobId"><code>pub use job::<a class="type" href="job/type.JobId.html" title="type backyard_core::job::JobId">JobId</a>;</code></dt><dt id="reexport.RawJob"><code>pub use job::<a class="struct" href="job/struct.RawJob.html" title="struct backyard_core::job::RawJob">RawJob</a>;</code></dt><dt id="reexport.Queue"><code>pub use queue::<a class="trait" href="queue/trait.Queue.html" title="trait backyard_core::queue::Queue">Queue</a>;</code></dt><dt id="reexport.JobOptions"><code>pub use options::<a class="struct" href="options/struct.JobOptions.html" title="struct backyard_core::options::JobOptions">JobOptions</a>;</code></dt><dt id="reexport.WorkerPool"><code>pub use worker::<a class="struct" href="worker/struct.WorkerPool.html" title="struct backyard_core::worker::WorkerPool">WorkerPool</a>;</code></dt><dt id="reexport.WorkerConfig"><code>pub use worker::<a class="struct" href="worker/struct.WorkerConfig.html" title="struct backyard_core::worker::WorkerConfig">WorkerConfig</a>;</code></dt><dt id="reexport.build_dispatch_table"><code>pub use registry::<a class="fn" href="registry/fn.build_dispatch_table.html" title="fn backyard_core::registry::build_dispatch_table">build_dispatch_table</a>;</code></dt><dt id="reexport.inventory"><code>pub use <a class="mod" href="https://docs.rs/inventory/0.3.24/inventory/index.html" title="mod inventory">inventory</a>;</code></dt></dl><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="error/index.html" title="mod backyard_core::error">error</a></dt><dt><a class="mod" href="job/index.html" title="mod backyard_core::job">job</a></dt><dt><a class="mod" href="options/index.html" title="mod backyard_core::options">options</a></dt><dt><a class="mod" href="queue/index.html" title="mod backyard_core::queue">queue</a></dt><dt><a class="mod" href="registry/index.html" title="mod backyard_core::registry">registry</a></dt><dt><a class="mod" href="retry/index.html" title="mod backyard_core::retry">retry</a></dt><dt><a class="mod" href="worker/index.html" title="mod backyard_core::worker">worker</a></dt></dl><script type="text/json" id="notable-traits-data">{"&[u8]":"<h3>Notable traits for <code>&amp;[<a class=\"primitive\" href=\"https://doc.rust-lang.org/1.94.0/std/primitive.u8.html\">u8</a>]</code></h3><pre><code><div class=\"where\">impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.94.0/std/io/trait.Read.html\" title=\"trait std::io::Read\">Read</a> for &amp;[<a class=\"primitive\" href=\"https://doc.rust-lang.org/1.94.0/std/primitive.u8.html\">u8</a>]</div>"}</script></section></div></main></body></html>

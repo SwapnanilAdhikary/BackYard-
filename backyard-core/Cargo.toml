@@ -1,0 +1,19 @@
+[package]
+name = "backyard-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+tokio = { workspace = true }
+tokio-util = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+chrono = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+inventory = { workspace = true }
+async-trait = { workspace = true }
+rand = { workspace = true }
+futures = { workspace = true }
