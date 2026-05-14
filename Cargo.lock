@@ -120,28 +120,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "backyard"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "axum",
- "backyard-core",
- "backyard-macros",
- "backyard-redis",
- "backyard-sqlite",
- "chrono",
- "cron",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
- "tower 0.4.13",
- "tower-http",
- "tracing",
- "uuid",
-]
-
-[[package]]
 name = "backyard-core"
 version = "0.1.0"
 dependencies = [
@@ -166,6 +144,28 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "backyard-queue"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "axum",
+ "backyard-core",
+ "backyard-macros",
+ "backyard-redis",
+ "backyard-sqlite",
+ "chrono",
+ "cron",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tower 0.4.13",
+ "tower-http",
+ "tracing",
+ "uuid",
 ]
 
 [[package]]

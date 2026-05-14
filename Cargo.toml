@@ -6,6 +6,7 @@ members = [
     "backyard-macros",
     "backyard",
 ]
+# Note: backyard directory contains backyard-queue crate
 resolver = "2"
 
 [workspace.package]
